@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% load static from staticfiles %}
+
+{% block title %}Connection console{% endblock %}
+
+{% block css %}
+    <style>
+        html {
+            overflow-y: hidden;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <h1>Connection "{{configuration.name}}" - Test console</h1>
+
+    <textarea id="test-console" spellcheck="false">Type help to see commands&#13;&#10;$</textarea>
+    <a href="/anonymizer/" class="btn btn-primary">Back</a>
+{% endblock %}
+
+{% block js %}
+    <script src="{% static "anonymizer/js/console.js" %}"></script>
+    <script>
+        $(function() {
+            new TestConsole({
+                $target: $('#test-console'),
+                consoleId: {{configuration.id}}
+            });
+        });
+    </script>
+{% endblock %}

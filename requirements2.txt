@@ -1,0 +1,9 @@
+dump
+requests==2.7.0
+coverage
+simplejson
+python-dateutil
+django-endless-pagination
+requests_oauthlib
+markdown
+python-cjson==1.1.0

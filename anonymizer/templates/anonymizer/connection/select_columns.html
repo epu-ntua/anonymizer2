@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% load static from staticfiles %}
+
+{% block title %}Select data{% endblock %}
+
+{% block content %}
+    <h1>Select your data</h1>
+    <p>Select the information that will be exposed</p>
+
+    <form method="POST" action=".">{% csrf_token %}
+        {{formset.non_form_errors}}
+        {{formset.management_form}}
+
+        <div class="form-list">
+            {% for form in formset %}
+                <div class="column-form">
+                    {{form.as_p}}
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="action-container clearfix">
+            <div class="btn btn-success add-property-row">Add more data</div>
+            <button role="submit" class="btn btn-primary pull-right">
+                <i class="fa fa-save"></i> Save
+            </button>
+        </div>
+
+
+    </form>
+
+{% endblock %}
+
+{% block js %}
+    <script src="{% static "anonymizer/js/columns.js" %}"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/js/select2.min.js"></script>
+    <script>
+            //$('.source-options').select2();
+    </script>
+{% endblock %}

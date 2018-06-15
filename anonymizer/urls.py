@@ -10,6 +10,8 @@ urlpatterns = [
 
     # connection urls
     url(r'^connection/create/$', views.create_configuration),
+    url(r'^connection/createfile/$', views.createFileConfiguration),
+    url(r'^connection/parsefile/$', views.parseFileConfiguration),
 
     # different connection types
     url(r'^connection/update-info/(?P<pk>\d+)/sqlite3/$', views.sqlite3_info),

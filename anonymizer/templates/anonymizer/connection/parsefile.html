@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Import File{% endblock %}
+{% block css %}
+    <link rel="stylesheet" media="screen" href="https://cdnjs.cloudflare.com/ajax/libs/handsontable/4.0.0/handsontable.min.css">
+{% endblock %}
+{%  block js %}
+
+{% endblock %}
+{% block content %}
+
+
+    <div class="row">
+        <div class="col-sm-3"></div>
+        <div class="col-sm-6">
+            <h1 style="margin-bottom: 40px;">File Imported</h1>
+<div id="example"></div>
+            <form enctype="multipart/form-data" method="POST" action=".">{% csrf_token %}
+
+                {% include 'util/form-fields.html' %}
+
+                <button type="submit" class="btn btn-primary pull-right">
+                    Continue <i class="fa fa-caret-right"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+
+{% endblock %}
+
+{% block js %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/handsontable/4.0.0/handsontable.min.js"></script>
+    <script src="{% static "anonymizer/js/parsefile.js" %}"></script>
+    <script>
+        $(function() {
+              initTable();
+            });
+    </script>
+{% endblock %}

@@ -13,9 +13,52 @@ from anonymizer.lists import PROVIDER_PLUGINS
 from forms import ConnectionConfigurationForm, Sqlite3ConnectionForm, MySQLConnectionForm, UserTableSelectionForm, \
     ColumnForm, validate_unique_across, PostgresConnectionForm
 from models import ConnectionConfiguration, ConnectionAccessKey
+from django.db import connections
+from .forms import UploadCSVForm
 
 # patch simplejson library to serialize datetimes
 simplejson.JSONEncoder.default = lambda self, obj: (obj.isoformat() if isinstance(obj, datetime.datetime) else None)
+
+
+#Create File Configuration
+
+def createFileConfiguration(request):
+    if request.method == 'POST':
+        form = UploadCSVForm(request.POST, request.FILES)
+        if form.is_valid():
+            handle_uploaded_file(request.FILES['csv_file'],str(request.user.id))
+            return redirect('/anonymizer/connection/parsefile')
+    else:
+        form = UploadCSVForm()
+    return render(request, 'anonymizer/connection/createfile.html', {'form': form})
+
+def handle_uploaded_file(f,userid):
+    with open('private/' + userid, 'wb+') as destination:
+        for chunk in f.chunks():
+            destination.write(chunk)
+
+'''
+cursor = connections['anonymizerCache'].cursor()
+querySQL = ( "CREATE TABLE inCSVTest"
+    "("
+        "first_name text,"
+        "last_name text,"
+        "last_login timestamp with time zone NOT NULL,"
+        "city text NOT NULL"
+    ")"
+)
+cursor.execute(querySQL)
+'''
+
+def parseFileConfiguration(request):
+    if request.method == 'POST':
+            #code here
+            return redirect('anonymizer/connection/parsefile')
+    else:
+        data = {}
+        for x in range (0,3):
+            data[x]= str(x)
+    return render(request, 'anonymizer/connection/parsefile.html', {'data': data})
 
 
 def home(request):

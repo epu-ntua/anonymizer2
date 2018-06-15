@@ -6,6 +6,7 @@ from mysql.connector import connect as mysql_connect, InterfaceError, Programmin
 from anonymizer.lists import AGGREGATE_LIST, PROVIDER_PLUGINS
 from models import ConnectionConfiguration
 
+
 __author__ = 'dipap'
 
 
@@ -185,3 +186,13 @@ def validate_unique_across(formset, fields):
                         if e_msg not in errors:
                             errors.append(e_msg)
 
+class UploadCSVForm(forms.Form):
+    csv_file = forms.FileField(label='Please upload your file')
+
+    def __init__(self, *args, **kwargs):
+        super(UploadCSVForm, self).__init__(*args, **kwargs)
+        # only accept .xlsx files
+        mime_types = [
+            'text/csv'
+        ]
+        self.fields['csv_file'].widget.attrs['accept'] = ','.join(mime_types)

@@ -1,4 +1,4 @@
-function initData() {
+function initTable() {
     // Instead of creating a new Handsontable instance with the container element passed as an argument,
     // you can simply call .handsontable method on a jQuery DOM object.
     var data = [

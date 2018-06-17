@@ -2,24 +2,26 @@
 {% load static from staticfiles %}
 {% block title %}Import File{% endblock %}
 {% block css %}
-    <link rel="stylesheet" media="screen" href="https://cdnjs.cloudflare.com/ajax/libs/handsontable/4.0.0/handsontable.min.css">
+    <link rel="stylesheet" media="screen"
+          href="https://cdnjs.cloudflare.com/ajax/libs/handsontable/4.0.0/handsontable.min.css">
 {% endblock %}
 
 {% block content %}
 
     <div class="row">
-        <div class="col-sm-3"></div>
-        <div class="col-sm-6">
-            <h1 style="margin-bottom: 40px;">File Imported</h1>
-<div id="example"></div>
-            <form enctype="multipart/form-data" method="POST" action=".">{% csrf_token %}
-
-                {% include 'util/form-fields.html' %}
-
-                <button type="submit" class="btn btn-primary pull-right">
+        <div class="col-sm-12" style="margin-bottom:40px">
+            <h1 style="margin-bottom: 40px;">Check file</h1>
+            <h4>Preview of the first 5 rows</h4>
+            <form method="POST" action="/anonymizer/connection/storefile/">{% csrf_token %}
+                <button type="submit" class="btn btn-primary ">
                     Continue <i class="fa fa-caret-right"></i>
                 </button>
             </form>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-12">
+            <div id="preview_table"></div>
         </div>
     </div>
 
@@ -30,8 +32,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/handsontable/4.0.0/handsontable.min.js"></script>
     <script src="{% static "anonymizer/js/parsefile.js" %}"></script>
     <script>
-        $(function() {
-              initTable();
-            });
+        $(function () {
+            initTable();
+        });
     </script>
 {% endblock %}

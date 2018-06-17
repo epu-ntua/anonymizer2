@@ -5,17 +5,36 @@
 {% block title %}Select data{% endblock %}
 
 {% block content %}
-    <h1>Select your data</h1>
-    <p>Select the information that will be exposed</p>
+    <h2>Automatic anonymisation mapping</h2>
+    <select style="margin-bottom:40px;">
+        <option value="manual">Manual mapping</option>
+        <option value="low">Low Anonymisation</option>
+        <option value="mediaum">Medium Anonymisation</option>
+        <option value="high">High Anonymisation</option>
+    </select>
+    <button role="submit" class="btn btn-primary ">
+        Apply
+    </button>
+    <div class="row">
+        <div class="col-md-10">
+            <h2>Data anonymisation mapping</h2>
+            <div>Select the information that will be exposed</div>
+        </div>
+        <div class="col-md-2">
+            <a class="btn btn-success pull-right" href="/anonymizer/connection/risk"><i class="fas fa-shield-alt"></i>
+                Preview and Risk Analysis</a>
+        </div>
+    </div>
+
 
     <form method="POST" action=".">{% csrf_token %}
-        {{formset.non_form_errors}}
-        {{formset.management_form}}
+        {{ formset.non_form_errors }}
+        {{ formset.management_form }}
 
         <div class="form-list">
             {% for form in formset %}
                 <div class="column-form">
-                    {{form.as_p}}
+                    {{ form.as_p }}
                 </div>
             {% endfor %}
         </div>
@@ -34,9 +53,9 @@
 
 {% block js %}
     <script src="{% static "anonymizer/js/columns.js" %}"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/css/select2.min.css" rel="stylesheet"/>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/js/select2.min.js"></script>
     <script>
-            //$('.source-options').select2();
+        //$('.source-options').select2();
     </script>
 {% endblock %}

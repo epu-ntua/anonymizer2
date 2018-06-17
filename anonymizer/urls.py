@@ -12,6 +12,12 @@ urlpatterns = [
     url(r'^connection/create/$', views.create_configuration),
     url(r'^connection/createfile/$', views.createFileConfiguration),
     url(r'^connection/parsefile/$', views.parseFileConfiguration),
+    url(r'^connection/api/preview/$', views.APIpreviewFile),
+    url(r'^connection/api/previewfull/$', views.APIpreviewFileFull),
+    url(r'^connection/storefile/$', views.storeFileConfiguration),
+
+
+    url(r'^connection/risk/$', views.risk),
 
     # different connection types
     url(r'^connection/update-info/(?P<pk>\d+)/sqlite3/$', views.sqlite3_info),

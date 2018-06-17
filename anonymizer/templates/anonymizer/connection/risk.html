@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% load static from staticfiles %}
+{% block title %}Import File{% endblock %}
+{% block css %}
+    <link rel="stylesheet" media="screen"
+          href="https://cdnjs.cloudflare.com/ajax/libs/handsontable/4.0.0/handsontable.min.css">
+{% endblock %}
+
+{% block content %}
+
+    <div class="row">
+        <div class="col-sm-12" style="margin-bottom:40px">
+            <h1 style="margin-bottom: 40px;"><i class="fas fa-shield-alt"></i> Preview and Risk Analysis</h1>
+
+
+            <ul class="nav nav-pills">
+                <li class="nav-item">
+                    <a class="nav-link active" data-toggle="pill" href="#risk-tab">Risk Analysis</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-toggle="pill" href="#privacy-tab">Apply Privacy Models</a>
+                </li>
+            </ul>
+
+            <div class="tab-content tab-space"
+            ">
+            <div class="tab-pane active" id="risk-tab">
+                <select id="attackermodel" style="margin-bottom:40px;margin-top:20px;">
+                    <option value="prosecutor">Prosecutor Attacker Model</option>
+                    <option value="journalist">Journalist Attacker Model</option>
+                    <option value="marketer">Marketer Attacker Model</option>
+                </select>
+                <div class="row">
+                    <div class="col-md-2">
+                        <div id="g1"></div>
+                    </div>
+                    <div class="col-md-2">
+                        <div id="g2"></div>
+                    </div>
+                    <div class="col-md-2">
+                        <div id="g3"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane" id="privacy-tab">
+                <h3>Select Privacy Model to apply</h3>
+                <div style="margin-top:10px;">
+                    <b>Privacy Model</b>
+                </div>
+                <select style="margin-bottom:40px;">
+                    <option value="prosecutor">k-Anonymity</option>
+                    <option value="journalist">k-Map</option>
+                    <option value="marketer">Differential privacy</option>
+                    <option value="marketer">δ-Precense</option>
+                </select>
+                <div>
+                    <b>Privacy Model Parameters</b>
+                </div>
+                <div style="margin-bottom:30px">
+                    k-Parameter <input type="text" name="kparameter">
+                </div>
+                <a class="btn btn-warning" style="margin-bottom:20px" href="/anonymizer/connection/risk"><i
+                        class="fas fa-user-secret"></i> Apply Privacy Model</a>
+            </div>
+        </div>
+        <hr/>
+        <div class="row">
+            <div class="col-sm-12">
+                <h3><i class="fas fa-seearch"></i>Preview of anonymised dataset</h3>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-12">
+                <a class="btn btn-success" style="margin-bottom:20px" href="/anonymizer/connection/risk"><i
+                        class="fas fa-table"></i> Export to CSV</a>
+                <div id="preview_table"></div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block js %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/handsontable/4.0.0/handsontable.min.js"></script>
+    <script src="{% static 'vendor/justgage/justgage.js' %}"></script>
+    <script src="{% static 'vendor/justgage/raphael-2.1.4.min.js' %}"></script>
+    <script>
+        var g1, g2, g3
+
+        window.onload = function () {
+            var g1 = new JustGage({
+                id: "g1",
+                value: getRandomInt(0, 100),
+                min: 0,
+                max: 100,
+                title: "Records at risk",
+                label: "%"
+            });
+            var g2 = new JustGage({
+                id: "g2",
+                value: getRandomInt(0, 100),
+                min: 0,
+                max: 100,
+                title: "Highest Risk",
+                label: "%"
+            });
+            var g3 = new JustGage({
+                id: "g3",
+                value: getRandomInt(0, 100),
+                min: 0,
+                max: 100,
+                title: "Data Utility",
+                label: "%"
+            });
+       document.getElementById('attackermodel').addEventListener('change', function() {
+           g1.refresh(getRandomInt(50, 100));
+            g2.refresh(getRandomInt(50, 100));
+            g3.refresh(getRandomInt(0, 50));
+        });
+        };
+
+
+    </script>
+    <script src="{% static "anonymizer/js/previewfilerisk.js" %}"></script>
+    <script>
+        $(function () {
+            initTable();
+        });
+
+    </script>
+{% endblock %}

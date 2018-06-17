@@ -28,8 +28,9 @@ class AuthRequiredMiddleware(object):
 
         if request.path.startswith('/anonymizer/api/'):
             return response
-
-        #if not request.user.is_authenticated():
-         #   return redirect(reverse('login'))
-
+        try:
+            if not request.user.is_authenticated():
+                return redirect(reverse('login'))
+        except Exception as e:
+            print e
         return response

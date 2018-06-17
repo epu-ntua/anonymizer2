@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 
 import traceback
 from functools import partial, wraps
-import json
+import json, csv
 import datetime
 from django.forms import formset_factory
 from django.http import HttpResponse, JsonResponse
@@ -13,52 +13,178 @@ from anonymizer.lists import PROVIDER_PLUGINS
 from forms import ConnectionConfigurationForm, Sqlite3ConnectionForm, MySQLConnectionForm, UserTableSelectionForm, \
     ColumnForm, validate_unique_across, PostgresConnectionForm
 from models import ConnectionConfiguration, ConnectionAccessKey
-from django.db import connections
+from django.db import connections, transaction
 from .forms import UploadCSVForm
+from anonymizer.json_encoder import DefaultEncoder
 
 # patch simplejson library to serialize datetimes
 simplejson.JSONEncoder.default = lambda self, obj: (obj.isoformat() if isinstance(obj, datetime.datetime) else None)
 
 
-#Create File Configuration
+# Create File Configuration
 
 def createFileConfiguration(request):
     if request.method == 'POST':
         form = UploadCSVForm(request.POST, request.FILES)
         if form.is_valid():
-            handle_uploaded_file(request.FILES['csv_file'],str(request.user.id))
+            handle_uploaded_file(request.FILES['csv_file'], str(request.user.id))
             return redirect('/anonymizer/connection/parsefile')
     else:
         form = UploadCSVForm()
     return render(request, 'anonymizer/connection/createfile.html', {'form': form})
 
-def handle_uploaded_file(f,userid):
+
+def handle_uploaded_file(f, userid):
     with open('private/' + userid, 'wb+') as destination:
         for chunk in f.chunks():
             destination.write(chunk)
 
-'''
-cursor = connections['anonymizerCache'].cursor()
-querySQL = ( "CREATE TABLE inCSVTest"
-    "("
-        "first_name text,"
-        "last_name text,"
-        "last_login timestamp with time zone NOT NULL,"
-        "city text NOT NULL"
-    ")"
-)
-cursor.execute(querySQL)
-'''
+
+def APIpreviewFile(request):
+    data = []
+    with open('private/' + str(request.user.id)) as fin:
+        dialect = csv.Sniffer().sniff(fin.read(1024))
+        fin.seek(0)
+        for index, row in enumerate(csv.reader(fin, dialect=dialect)):
+            if index > 5:
+                break
+            data.append(row)
+    json_data = json.dumps(data, cls=DefaultEncoder)
+    return HttpResponse(json_data)
+
+
+def APIpreviewFileFull(request):
+    data = []
+    with open('private/' + str(request.user.id)) as fin:
+        dialect = csv.Sniffer().sniff(fin.read(1024))
+        fin.seek(0)
+        for index, row in enumerate(csv.reader(fin, dialect=dialect)):
+            data.append(row)
+    json_data = json.dumps(data, cls=DefaultEncoder)
+    return HttpResponse(json_data)
+
 
 def parseFileConfiguration(request):
     if request.method == 'POST':
-            #code here
-            return redirect('anonymizer/connection/parsefile')
+        # code here
+        return redirect('anonymizer/connection/parsefile')
     else:
         data = {}
-        for x in range (0,3):
-            data[x]= str(x)
+        for x in range(0, 3):
+            data[x] = str(x)
     return render(request, 'anonymizer/connection/parsefile.html', {'data': data})
+
+
+# Get the column data types of the CSV file
+def _get_col_datatypes(fin, dialect):
+    dr = csv.DictReader(fin, dialect=dialect)  # comma is default delimiter
+    fieldTypes = {}
+    for entry in dr:
+        feildslLeft = [f for f in dr.fieldnames if f not in fieldTypes.keys()]
+        if not feildslLeft: break  # We're done
+        for field in feildslLeft:
+            data = entry[field]
+
+            # Need data to decide
+            if len(data) == 0:
+                continue
+
+            if data.isdigit():
+                fieldTypes[field] = "INTEGER"
+            else:
+                fieldTypes[field] = "TEXT"
+                # TODO: Currently there's no support for DATE in sqllite
+
+    if len(feildslLeft) > 0:
+        raise Exception("Failed to find all the columns data types - Maybe some are empty?")
+
+    return fieldTypes
+
+
+# Remove non-appropriate characters
+def escapingGenerator(f):
+    for line in f:
+        yield line.encode("ascii", "xmlcharrefreplace").decode("ascii")
+
+
+def cleantext(s, TrimSpace=False):
+    l = "".join(c for c in s if c not in "#!'")
+    if TrimSpace == True:
+        l = l.replace(" ", "")
+    return l
+
+
+def storeFileConfiguration(request):
+    if request.method == 'POST':
+        # Name of the connection
+        connectionName = 'CSV_' + str(request.user.id) + datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+        # Store csv file in  Cache DB
+        with open('private/' + str(request.user.id)) as fin:
+            dialect = csv.Sniffer().sniff(fin.read(1024))
+            fin.seek(0)
+            # Get the datatypes
+            dt = _get_col_datatypes(fin, dialect)
+
+            fin.seek(0)
+
+            reader = csv.DictReader(fin, dialect=dialect)
+
+            # Keep the order of the columns name just as in the CSV
+            fields = reader.fieldnames
+            cols = []
+
+            # Set field and type
+            for f in fields:
+                cols.append("%s %s" % (cleantext(f, TrimSpace=True), dt[f]))
+
+            # Generate create table statement:
+            querySQL = "CREATE TABLE IF NOT EXISTS " + connectionName + " (%s , PRIMARY KEY (cf))" % ",".join(cols)
+            cursor = connections['anonymizerCache'].cursor()
+            cursor.execute(querySQL)
+
+            fin.seek(0)
+
+            reader = csv.reader(escapingGenerator(fin), dialect=dialect)
+            next(reader, None)  # skip the headers
+            for row in reader:
+                # Generate insert statement:
+                querySQL = "INSERT INTO " + connectionName + " VALUES("
+                values = ""
+                for x in row:
+                    values = values + "'" + cleantext(x) + "',"
+                querySQL = querySQL + values[:-1] + ")"
+                cursor.execute(querySQL)
+
+        # Create a new connectionconfiguration
+        config = ConnectionConfiguration.objects.create()
+        config.connection_type = 'django.db.backends.psycopg2'
+        config.name = connectionName.lower()
+        config.users_table = connectionName.lower()
+        config.info = '''
+                "name": "''' + 'anonymizerCache' + '''",
+                "user": "''' + 'postgres' + '''",
+                "password": "''' + 'engage1!' + '''",
+                "host": "''' + 'localhost' + '''",
+                "port": "''' + '5432' + '''"
+            '''
+        config.save()
+        connection = config.get_connection()
+        # Find table properties
+        # detect primary key
+        config.user_pk = connection.primary_key_of(config.users_table)
+
+        # load default properties
+        data_properties = connection.get_data_properties(config.users_table, from_related=True)
+        few_properties = connection.get_data_properties(config.users_table)
+        columns = few_properties[0]
+        columns.insert(0, ('', '', ''))
+        config.properties = config.get_default_properties(few_properties[0])
+        config.foreign_keys = json.dumps(data_properties[1])
+
+        # save changes
+        config.save()
+
+        return redirect('/anonymizer/connection/%d/select-columns/' % config.pk)
 
 
 def home(request):
@@ -67,6 +193,14 @@ def home(request):
     }
 
     return render(request, 'anonymizer/connection/home.html', params)
+
+
+def risk(request):
+    params = {
+        'configurations': ConnectionConfiguration.objects.all(),
+    }
+
+    return render(request, 'anonymizer/connection/risk.html', params)
 
 
 class ConnectionConfigurationCreateView(CreateView):
@@ -374,7 +508,7 @@ def parse_filters(q):
         f_end = -1
 
     if f_end > 0:
-        spl = q[f_end+1:-1].split(':')
+        spl = q[f_end + 1:-1].split(':')
         if spl[0]:
             start = int(spl[0])
         else:

@@ -17,7 +17,7 @@ urlpatterns = [
     url(r'^connection/storefile/$', views.storeFileConfiguration),
 
 
-    url(r'^connection/risk/$', views.risk),
+    url(r'^connection/(?P<pk>\d+)/risk/$', views.risk),
 
     # different connection types
     url(r'^connection/update-info/(?P<pk>\d+)/sqlite3/$', views.sqlite3_info),

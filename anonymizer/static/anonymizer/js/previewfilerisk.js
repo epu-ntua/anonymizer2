@@ -1,18 +1,19 @@
-function initTable() {
+function initTable(pk) {
     $.ajax({
         type: "get",
-        url: "/anonymizer/connection/api/previewfull/",
+        url: "/anonymizer/connection/" + pk + "/query/?q=all()",
         data: {},
         dataType: "json",
         success: function (data) {
             var container = document.getElementById('preview_table');
+            var columnsHeaders  = Object.keys(data[0])
             var hot = new Handsontable(container, {
-                data: data.slice(1),
+                data: data,
                 rowHeaders: true,
-                colHeaders: data[0],
+                colHeaders: columnsHeaders,
                 stretchH: 'all',
                 height: 800,
-                width: 1900,
+                width: 1200,
                 autoWrapRow: true,
                 manualRowResize: true,
                 manualColumnResize: true,

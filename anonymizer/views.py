@@ -196,9 +196,10 @@ def home(request):
     return render(request, 'anonymizer/connection/home.html', params)
 
 
-def risk(request):
+def risk(request,pk):
     params = {
         'configurations': ConnectionConfiguration.objects.all(),
+        'pk':pk,
     }
 
     return render(request, 'anonymizer/connection/risk.html', params)
@@ -468,7 +469,7 @@ def select_columns(request, pk):
         else:
             status = 400
             params['formset'] = formset
-
+    params['pk']=pk
     return render(request, 'anonymizer/connection/select_columns.html', params, status=status)
 
 

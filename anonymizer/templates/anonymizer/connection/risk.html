@@ -60,7 +60,7 @@
                 <div style="margin-bottom:30px">
                     k-Parameter <input type="text" name="kparameter">
                 </div>
-                <a class="btn btn-warning" style="margin-bottom:20px" href="/anonymizer/connection/risk"><i
+                <a class="btn btn-warning" style="margin-bottom:20px" href="#"><i
                         class="fas fa-user-secret"></i> Apply Privacy Model</a>
             </div>
         </div>
@@ -72,7 +72,7 @@
         </div>
         <div class="row">
             <div class="col-sm-12">
-                <a class="btn btn-success" style="margin-bottom:20px" href="/anonymizer/connection/risk"><i
+                <a class="btn btn-success" style="margin-bottom:20px" href="#"><i
                         class="fas fa-table"></i> Export to CSV</a>
                 <div id="preview_table"></div>
             </div>
@@ -125,7 +125,7 @@
     <script src="{% static "anonymizer/js/previewfilerisk.js" %}"></script>
     <script>
         $(function () {
-            initTable();
+            initTable({{ pk }});
         });
 
     </script>

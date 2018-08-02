@@ -16,6 +16,7 @@ from models import ConnectionConfiguration, ConnectionAccessKey
 from django.db import connections, transaction
 from .forms import UploadCSVForm
 from anonymizer.json_encoder import DefaultEncoder
+from anonymizer_project import settings
 
 # patch simplejson library to serialize datetimes
 simplejson.JSONEncoder.default = lambda self, obj: (obj.isoformat() if isinstance(obj, datetime.datetime) else None)
@@ -162,10 +163,10 @@ def storeFileConfiguration(request):
         config.users_table = connectionName.lower()
         config.info = '''
                 "name": "''' + 'anonymizerCache' + '''",
-                "user": "''' + 'postgres' + '''",
-                "password": "''' + 'engage1!' + '''",
-                "host": "''' + 'localhost' + '''",
-                "port": "''' + '5432' + '''"
+                "user": "''' + settings.DATABASES['anonymizerCache']['USER'] + '''",
+                "password": "''' + settings.DATABASES['anonymizerCache']['PASSWORD'] + '''",
+                "host": "''' + settings.DATABASES['anonymizerCache']['HOST'] + '''",
+                "port": "''' + settings.DATABASES['anonymizerCache']['PORT'] + '''"
             '''
         config.save()
         connection = config.get_connection()

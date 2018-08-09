@@ -2,131 +2,496 @@
 {% load static from staticfiles %}
 {% block title %}Import File{% endblock %}
 {% block css %}
-    <link rel="stylesheet" media="screen"
-          href="https://cdnjs.cloudflare.com/ajax/libs/handsontable/4.0.0/handsontable.min.css">
+<link rel="stylesheet" media="screen"
+      href="https://cdnjs.cloudflare.com/ajax/libs/handsontable/4.0.0/handsontable.min.css">
 {% endblock %}
 
 {% block content %}
 
-    <div class="row">
-        <div class="col-sm-12" style="margin-bottom:40px">
-            <h1 style="margin-bottom: 40px;"><i class="fas fa-shield-alt"></i> Preview and Risk Analysis</h1>
+<div class="row">
+    <div class="col-sm-12" style="margin-bottom:40px">
+        <h1 style="margin-bottom: 40px;"><i class="fas fa-shield-alt"></i> Preview and Risk Analysis</h1>
 
 
-            <ul class="nav nav-pills">
-                <li class="nav-item">
-                    <a class="nav-link active" data-toggle="pill" href="#risk-tab">Risk Analysis</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" data-toggle="pill" href="#privacy-tab">Apply Privacy Models</a>
-                </li>
-            </ul>
+        <ul class="nav nav-pills">
+            <li class="nav-item">
+                <a class="nav-link active" data-toggle="pill" href="#risk-tab">Risk Analysis</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-toggle="pill" href="#privacy-tab">Apply Privacy Models</a>
+            </li>
+        </ul>
 
-            <div class="tab-content tab-space"
-            ">
-            <div class="tab-pane active" id="risk-tab">
-                <select id="attackermodel" style="margin-bottom:40px;margin-top:20px;">
-                    <option value="prosecutor">Prosecutor Attacker Model</option>
-                    <option value="journalist">Journalist Attacker Model</option>
-                    <option value="marketer">Marketer Attacker Model</option>
-                </select>
-                <div class="row">
-                    <div class="col-md-2">
-                        <div id="g1"></div>
-                    </div>
-                    <div class="col-md-2">
-                        <div id="g2"></div>
-                    </div>
-                    <div class="col-md-2">
-                        <div id="g3"></div>
-                    </div>
+        <div class="tab-content tab-space"> </div>
+        <div class="tab-pane active" id="risk-tab">
+            <select id="attackermodel" style="margin-bottom:40px;margin-top:20px;">
+                <option value="prosecutor">Prosecutor Attacker Model</option>
+                <option value="journalist">Journalist Attacker Model</option>
+                <option value="marketer">Marketer Attacker Model</option>
+            </select>
+            <div class="row">
+                <div class="col-md-2">
+                    <div id="g1"></div>
                 </div>
-            </div>
-
-            <div class="tab-pane" id="privacy-tab">
-                <h3>Select Privacy Model to apply</h3>
-                <div style="margin-top:10px;">
-                    <b>Privacy Model</b>
+                <div class="col-md-2">
+                    <div id="g2"></div>
                 </div>
-                <select style="margin-bottom:40px;">
-                    <option value="prosecutor">k-Anonymity</option>
-                    <option value="journalist">k-Map</option>
-                    <option value="marketer">Differential privacy</option>
-                    <option value="marketer">δ-Precense</option>
-                </select>
-                <div>
-                    <b>Privacy Model Parameters</b>
+                <div class="col-md-2">
+                    <div id="g3"></div>
                 </div>
-                <div style="margin-bottom:30px">
-                    k-Parameter <input type="text" name="kparameter">
-                </div>
-                <a class="btn btn-warning" style="margin-bottom:20px" href="#"><i
-                        class="fas fa-user-secret"></i> Apply Privacy Model</a>
             </div>
         </div>
-        <hr/>
-        <div class="row">
-            <div class="col-sm-12">
-                <h3><i class="fas fa-seearch"></i>Preview of anonymised dataset</h3>
+
+        <div class="tab-pane" id="privacy-tab">
+            <h3>Select Privacy Model to apply</h3>
+            <div style="margin-top:10px;">
+                <b>Privacy Model</b>
             </div>
-        </div>
-        <div class="row">
-            <div class="col-sm-12">
-                <a class="btn btn-success" style="margin-bottom:20px" href="#"><i
-                        class="fas fa-table"></i> Export to CSV</a>
-                <div id="preview_table"></div>
+            <select style="margin-bottom:40px;">
+                <option value="prosecutor">k-Anonymity</option>
+                <option value="journalist">k-Map</option>
+                <option value="marketer">Differential privacy</option>
+                <option value="marketer">δ-Precense</option>
+            </select>
+            <div>
+                <b>Privacy Model Parameters</b>
             </div>
+            <div style="margin-bottom:30px">
+                k-Parameter <input type="text" name="kparameter">
+            </div>
+            <a class="btn btn-warning" style="margin-bottom:20px" href="#"><i
+                    class="fas fa-user-secret"></i> Apply Privacy Model</a>
         </div>
     </div>
+    <hr/>
+    <div class="row">
+        <div class="col-sm-12">
+            <h3><i class="fas fa-seearch"></i>Preview of anonymised dataset</h3>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-12">
+            <a class="btn btn-success" style="margin-bottom:20px" href="#"><i
+                    class="fas fa-table"></i> Export to CSV</a>
+            <div id="preview_table"></div>
+        </div>
+    </div>
+</div>
 
 {% endblock %}
 
 {% block js %}
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/handsontable/4.0.0/handsontable.min.js"></script>
-    <script src="{% static 'vendor/justgage/justgage.js' %}"></script>
-    <script src="{% static 'vendor/justgage/raphael-2.1.4.min.js' %}"></script>
-    <script>
-        var g1, g2, g3
+<script src="https://cdnjs.cloudflare.com/ajax/libs/handsontable/4.0.0/handsontable.min.js"></script>
+<script src="{% static 'vendor/justgage/justgage.js' %}"></script>
+<script src="{% static 'vendor/justgage/raphael-2.1.4.min.js' %}"></script>
+<script>
+    var g1, g2, g3;
+    var g1Prosecutor =0 ,g1Journalist=0, g2Prosecutor =0, g2Journalist=0, g3Prosecutor=0, g3Journalist=0, g3Marketer=0;
 
-        window.onload = function () {
-            var g1 = new JustGage({
-                id: "g1",
-                value: getRandomInt(0, 100),
-                min: 0,
-                max: 100,
-                title: "Records at risk",
-                label: "%"
-            });
-            var g2 = new JustGage({
-                id: "g2",
-                value: getRandomInt(0, 100),
-                min: 0,
-                max: 100,
-                title: "Highest Risk",
-                label: "%"
-            });
-            var g3 = new JustGage({
-                id: "g3",
-                value: getRandomInt(0, 100),
-                min: 0,
-                max: 100,
-                title: "Data Utility",
-                label: "%"
-            });
-       document.getElementById('attackermodel').addEventListener('change', function() {
-           g1.refresh(getRandomInt(50, 100));
-            g2.refresh(getRandomInt(50, 100));
-            g3.refresh(getRandomInt(0, 50));
+    window.onload = function () {
+        g1 = new JustGage({
+            id: "g1",
+            value: 0,
+            min: 0,
+            max: 100,
+            title: "Records at risk",
+            label: "%"
         });
-        };
+        g2 = new JustGage({
+            id: "g2",
+            value: 0,
+            min: 0,
+            max: 100,
+            title: "Highest Risk",
+            label: "%"
+        });
+        g3 = new JustGage({
+            id: "g3",
+            value: 0,
+            min: 0,
+            max: 100,
+            title: "Success Rate",
+            label: "%"
+        });
+        document.getElementById('attackermodel').addEventListener('change', function () {
+            if (document.getElementById('attackermodel').value == "marketer") {
+                document.getElementById("g1").style.display = "none";
+                document.getElementById("g2").style.display = "none";
+                g1.refresh(0);
+                g2.refresh(0);
+                g3.refresh(g3Marketer);
+            } else if (document.getElementById('attackermodel').value ==  "prosecutor"){
+                document.getElementById("g1").style.display = "block";
+                document.getElementById("g2").style.display = "block";
+                g1.refresh(g1Prosecutor);
+                g2.refresh(g2Prosecutor);
+                g3.refresh(g3Prosecutor);
+            } else if (document.getElementById('attackermodel').value ==  "journalist") {
+                document.getElementById("g1").style.display = "block";
+                document.getElementById("g2").style.display = "block";
+                g1.refresh(g1Journalist);
+                g2.refresh(g2Journalist);
+                g3.refresh(g3Journalist);
+            }
 
+        });
+        // document.getElementById('attackermodel').addEventListener('change', function () {
+        //     g1.refresh(getRandomInt(50, 100));
+        //     g2.refresh(getRandomInt(50, 100));
+        //     g3.refresh(getRandomInt(0, 50));
+        // });
 
-    </script>
-    <script src="{% static "anonymizer/js/previewfilerisk.js" %}"></script>
-    <script>
+    }
+</script>
+<script src="{% static  'anonymizer/js/previewfilerisk.js' %}"></script>
+<script >
         $(function () {
-            initTable({{ pk }});
+            data =initTable({{ pk }});
+            console.log(data);
         });
 
-    </script>
+
+</script>
+
+<script>
+        //  url_string = window.location.href;
+        //  var url = new URL(url_string);
+        //  var pk = url.searchParams.get(pk);
+         {#var data = {{ data|safe}};#}
+        // var identifiers = data.shift();
+
+         $.ajax({
+        type: "get",
+        url: "/anonymizer/connection/" + {{ pk }} + "/query/?q=all()",
+        data: {},
+        dataType: "json",
+        success: function (data) {
+            riskEvaluation(data);
+        },
+        error: function (xhr, status, error) {
+            console.log(error)
+        }
+    });
+
+        function riskEvaluation(olddata) {
+
+            var data = olddata;
+            var identifiers = Object.keys(data[0]) ;
+            console.log(identifiers);
+            console.log("heyyy");
+             for ( var tempCounter = 0 ; tempCounter < data.length; tempCounter++){
+                 var result = Object.keys(data[tempCounter]).map(function(key) {
+                     return data[tempCounter][key];
+
+                 })
+                data[tempCounter] = result;
+             }
+
+            identifiers = identifiers.splice(3,1);
+             for ( var tempCounter = 0 ; tempCounter < data.length; tempCounter++){
+                 data[tempCounter].splice(3,1);
+             }
+             console.log(data);
+            var sampleOffset = 0;
+            var sampleFactor = 0.45;
+            var sampleIgnoreOutliers = false;
+
+            var popOffset = 0.45;
+            var popFactor = 0.45;
+            var popIgnoreOutliers = true;
+
+            var sampleOnlyOffset = 0;
+            var sampleOnlyFactor = 0.9;
+            var sampleOnlyIgnoreOutliers = false;
+
+            var prosecutorOffset = 0.9;
+            var journalistOffset = 0.933;
+            var marketerOffset = 0.966;
+
+            var sample;
+            var population;
+
+            sample = getGroups(data, identifiers, sampleOnlyOffset, sampleOnlyFactor, 0, sampleOnlyIgnoreOutliers);
+
+
+           {#data.splice(0,100);#}
+           {#console.log("aloha");#}
+           {# console.log(data);#}
+            population = sample;
+           // population = getGroups(data, identifiers, popOffset, popFactor, 0, popIgnoreOutliers);
+
+            var tempc = 0
+            for (var key in sample) {
+                delete sample[key];
+                if (tempc == 100) {
+                    break;
+                }
+                tempc++;
+             }
+
+            getJournalistRisk(sample, population, journalistOffset);
+            getMarketerRisk(sample, population, marketerOffset);
+            getProsecutorRisk(sample, population, prosecutorOffset);
+        }
+        // ignote outliers true if
+        function getGroups(data , quasi ,offset , factor , progress , ignoreoutliers) {
+        // Getting data from database and number of quasi identifiers
+            var map = {};
+             // console.log(hello);
+            var indices=[];
+            for ( var tempCounter =0; tempCounter < quasi.length ;tempCounter++){
+
+                var tempData=[];
+                for (var tempCounter2 = 0 ;tempCounter2 < data.length; tempCounter2++ ) {
+                    tempData.push(data[tempCounter2][tempCounter])
+                }
+                indices.push(tempData);
+            }
+
+            var capacity = data.length10;
+            if (capacity  < 10){
+                capacity = 10;
+            }
+            var numRows = data.length;
+
+            for(var row =0 ; row < numRows ; row++){
+                var prog = offset + row /numRows * factor ;
+                if(prog != progress)
+                {
+                    progress = prog;
+                }
+
+                var key = hashEntry(data[row]);
+
+                if(!map.hasOwnProperty(key)){
+                    map[key] =1;
+                }else{
+                    map[key] = map[key] + 1;
+                }
+            }
+
+             console.log(map);
+            return map
+        }
+
+        function hashEntry(row) {
+            var temp = "";
+            for (var it =0 ; it < row.length; it ++){
+                temp = temp.concat(row[it].toString());
+            }
+
+            return temp;
+
+        }
+
+        function getProsecutorRisk(sample , population  , offset) {
+            var progress =0;
+            var rA =0;
+            var rB =0;
+            var rC=0;
+            var numRecords =0;
+            var numClasses =0;
+            var smallestClassSize = Number.MAX_VALUE;
+            var maxindex = Object.keys(sample).length;
+            var index = 0;
+
+            var threshold = 0.2;
+
+            for( var prop in sample ) {
+                  {#console.log(prop);#}
+                var elementSize = sample[prop];
+                 {#console.log(elementSize);#}
+                 {#console.log(Object.keys(sample).length);#}
+                var prog = Math.round(offset + index / maxindex * 3.3);
+                if (prog != progress) {
+                    progress = prog
+                }
+                index = index + 1;
+
+                // if element isnt supressed
+                 if (1) {
+                    var groupSize = elementSize;
+
+                    // Computing rA
+                    if (1 /groupSize > threshold) {
+                        rA += groupSize;
+                    }
+
+                    // Computing rB
+                    if (groupSize < smallestClassSize) {
+                        smallestClassSize = groupSize;
+                    }
+
+                    // Computing rC
+                    numClasses++;
+                    numRecords += groupSize;
+
+                 }
+
+                 {#element = element.next;#}
+
+
+                 if(stop)
+                 {
+
+                 }
+
+            }
+
+            rA = rA / numRecords;
+
+            rB = 1 /smallestClassSize;
+
+            rC = numClasses / numRecords;
+
+            g1Prosecutor = rA*100;
+            g2Prosecutor = rB*100;
+            g3Prosecutor = rC*100;
+
+            g1.refresh(g1Prosecutor| 0);
+            g2.refresh(g2Prosecutor| 0);
+            g3.refresh(g3Prosecutor| 0);
+        }
+
+        function getJournalistRisk(sample , population  , offset) {
+            var progress =0;
+            var rA =0;
+            var rB =0;
+            var rC=0;
+            var rC1 =0;
+            var rC2 =0;
+            var numRecordsInSample =0;
+            var numClassesInSample =0;
+            var smallestClassSizeInPopulation = Number.MAX_VALUE;
+            var maxindex = Object.keys(sample).length;
+            var index = 0;
+
+            var threshold = 0.2;
+
+             {#console.log(sample);#}
+
+            for( var prop in sample ) {
+                  {#console.log(prop);#}
+                var elementSize = sample[prop];
+                 {#console.log(elementSize);#}
+                 {#console.log(Object.keys(sample).length);#}
+                var prog = Math.round(offset + index / maxindex * 3.3);
+                if (prog != progress) {
+                    progress = prog
+                }
+                index = index + 1;
+
+                // if element isnt supressed
+                 if (1) {
+                    var groupSizeInSample = elementSize;
+                    var groupSizeInPopulation = groupSizeInSample;
+                    if (population != sample) {
+                        groupSizeInPopulation = population.size;
+                    }
+
+                    // Computing rA
+                    if (1 /groupSizeInPopulation > threshold) {
+                        rA += groupSizeInSample;
+                    }
+
+                    // Computing rB
+                    if (groupSizeInPopulation < smallestClassSizeInPopulation) {
+                        smallestClassSizeInPopulation = groupSizeInPopulation;
+                    }
+
+                    // Computing rC
+                    numClassesInSample++;
+                    numRecordsInSample += groupSizeInSample;
+                    rC1 += groupSizeInPopulation;
+                    rC2 += groupSizeInSample / groupSizeInPopulation;
+                 }
+
+                 {#element = element.next;#}
+
+
+                 if(stop)
+                 {
+
+                 }
+
+            }
+
+                rA  = rA / numRecordsInSample;
+                rB = 1 / smallestClassSizeInPopulation;
+
+                rC1 = numClassesInSample / rC1;
+                rC2 = rC2 / numRecordsInSample;
+                rC = Math.max(rC1, rC2);
+
+                {# console.log("risks are");#}
+                {#console.log(rA);#}
+                {#console.log(rB);#}
+                {#console.log(rC);#}
+
+                g1Journalist = rA*100;
+                g2Journalist = rB*100;
+                g3Journalist = rC*100;
+
+                g1.refresh(g1Journalist| 0);
+                g2.refresh(g2Journalist| 0);
+                g3.refresh(g3Journalist| 0);
+                {#return [threshold , rA , rB , rC];#}
+
+
+        }
+
+        function getMarketerRisk(sample , population  , offset) {
+            var progress =0;
+            var rC =0 ;
+            var numRecordsInSample = 0;
+            var maxindex = Object.keys(sample).length;
+            var index = 0;
+
+            var threshold = 0.2;
+
+             {#console.log(sample);#}
+
+            for( var prop in sample ) {
+                  {#console.log(prop);#}
+                var elementSize = sample[prop];
+
+                 {#console.log(elementSize);#}
+                 {#console.log(Object.keys(sample).length);#}
+                var prog = Math.round(offset + index / maxindex * 3.3);
+                if (prog != progress) {
+                    progress = prog
+                }
+                index = index + 1;
+
+                // if element isnt supressed
+                 if (1) {
+                    var groupSizeInSample = elementSize;
+                    var groupSizeInPopulation = groupSizeInSample;
+                    if (population != sample) {
+                        groupSizeInPopulation = population.size;
+                    }
+
+                    // Computing rC
+                    numRecordsInSample += groupSizeInSample;
+                    rC += groupSizeInSample / groupSizeInPopulation;
+                 }
+
+                 {#element = element.next;#}
+
+
+                 if(stop)
+                 {
+
+                 }
+
+            }
+
+            rC = rC / numRecordsInSample;
+
+            g3Marketer = rC*100;
+
+            g3.refresh(g3Marketer| 0);
+
+        }
+</script>
 {% endblock %}

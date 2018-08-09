@@ -47,8 +47,8 @@
             <div style="margin-top:10px;">
                 <b>Privacy Model</b>
             </div>
-            <select style="margin-bottom:40px;">
-                <option value="prosecutor">k-Anonymity</option>
+            <select style="margin-bottom:40px;" >
+                <option value="prosecutor" selected="selected">k-Anonymity</option>
                 <option value="journalist">k-Map</option>
                 <option value="marketer">Differential privacy</option>
                 <option value="marketer">δ-Precense</option>
@@ -58,6 +58,20 @@
             </div>
             <div style="margin-bottom:30px">
                 k-Parameter <input type="text" name="kparameter">
+            </div>
+            <div>
+                <b>Threshold Selection</b>
+                 Acceptable highest probability of re-identification for a single record
+            </div>
+            <div>
+                Select a percent <input type="number" id="thresholdSelector" min="0" max="100" step="1" name="Threshold" value=20>
+            </div>
+            <div>
+                <b>Sample Extraction</b>
+
+            </div>
+            <div style="margin-bottom:30px">
+                Select a percent <input type="number" id="sampleSelector" min="0" max="100" step="1" name="Threshold" value=0>
             </div>
             <a class="btn btn-warning" style="margin-bottom:20px" href="#"><i
                     class="fas fa-user-secret"></i> Apply Privacy Model</a>
@@ -87,6 +101,9 @@
 <script>
     var g1, g2, g3;
     var g1Prosecutor =0 ,g1Journalist=0, g2Prosecutor =0, g2Journalist=0, g3Prosecutor=0, g3Journalist=0, g3Marketer=0;
+    var threshold = 0.2;
+    var samplePercent =0;
+    var dataStatic;
 
     window.onload = function () {
         g1 = new JustGage({
@@ -135,6 +152,16 @@
             }
 
         });
+
+         document.getElementById('thresholdSelector').addEventListener('change', function () {
+                threshold=document.getElementById('thresholdSelector').value * 0.01;
+                riskEvaluation(dataStatic , threshold ,samplePercent);
+        });
+
+          document.getElementById('sampleSelector').addEventListener('change', function () {
+                samplePercent=document.getElementById('sampleSelector').value;
+                riskEvaluation(dataStatic , threshold ,samplePercent);
+        });
         // document.getElementById('attackermodel').addEventListener('change', function () {
         //     g1.refresh(getRandomInt(50, 100));
         //     g2.refresh(getRandomInt(50, 100));
@@ -166,14 +193,15 @@
         data: {},
         dataType: "json",
         success: function (data) {
-            riskEvaluation(data);
+            dataStatic = data;
+            riskEvaluation(data , threshold ,samplePercent);
         },
         error: function (xhr, status, error) {
             console.log(error)
         }
     });
 
-        function riskEvaluation(olddata) {
+        function riskEvaluation(olddata , threshold , samplePercent) {
 
             var data = olddata;
             var identifiers = Object.keys(data[0]) ;
@@ -211,27 +239,32 @@
             var sample;
             var population;
 
+
             sample = getGroups(data, identifiers, sampleOnlyOffset, sampleOnlyFactor, 0, sampleOnlyIgnoreOutliers);
+            {#sample = getGroups(data, identifiers, sampleOffset, sampleFactor, 0, sampleIgnoreOutliers);#}
 
-
-           {#data.splice(0,100);#}
-           {#console.log("aloha");#}
-           {# console.log(data);#}
+            var sampleSize = data.length * samplePercent /100;
+           data.splice(0,sampleSize);
+           console.log("aloha");
+            console.log(data);
             population = sample;
-           // population = getGroups(data, identifiers, popOffset, popFactor, 0, popIgnoreOutliers);
+            {#population = getGroups(data, identifiers, popOffset, popFactor, 0, popIgnoreOutliers);#}
 
-            var tempc = 0
-            for (var key in sample) {
-                delete sample[key];
-                if (tempc == 100) {
-                    break;
-                }
-                tempc++;
-             }
+            {#console.log("Ninja");#}
+            console.log(Object.keys(sample).length);
+            console.log(Object.keys(population).length);
+            {#var tempc = 0#}
+            {#for (var key in sample) {#}
+            {#    delete sample[key];#}
+            {#    if (tempc == 400) {#}
+            {#        break;#}
+            {#    }#}
+            {#    tempc++;#}
+            {# }#}
 
-            getJournalistRisk(sample, population, journalistOffset);
-            getMarketerRisk(sample, population, marketerOffset);
-            getProsecutorRisk(sample, population, prosecutorOffset);
+            getJournalistRisk(sample, population, journalistOffset , threshold);
+            getMarketerRisk(sample, population, marketerOffset , threshold);
+            getProsecutorRisk(sample, population, prosecutorOffset , threshold);
         }
         // ignote outliers true if
         function getGroups(data , quasi ,offset , factor , progress , ignoreoutliers) {
@@ -248,7 +281,7 @@
                 indices.push(tempData);
             }
 
-            var capacity = data.length10;
+            var capacity = data.length;
             if (capacity  < 10){
                 capacity = 10;
             }
@@ -284,7 +317,7 @@
 
         }
 
-        function getProsecutorRisk(sample , population  , offset) {
+        function getProsecutorRisk(sample , population  , offset , threshold) {
             var progress =0;
             var rA =0;
             var rB =0;
@@ -295,7 +328,6 @@
             var maxindex = Object.keys(sample).length;
             var index = 0;
 
-            var threshold = 0.2;
 
             for( var prop in sample ) {
                   {#console.log(prop);#}
@@ -353,7 +385,7 @@
             g3.refresh(g3Prosecutor| 0);
         }
 
-        function getJournalistRisk(sample , population  , offset) {
+        function getJournalistRisk(sample , population  , offset , threshold) {
             var progress =0;
             var rA =0;
             var rB =0;
@@ -366,7 +398,6 @@
             var maxindex = Object.keys(sample).length;
             var index = 0;
 
-            var threshold = 0.2;
 
              {#console.log(sample);#}
 
@@ -386,7 +417,7 @@
                     var groupSizeInSample = elementSize;
                     var groupSizeInPopulation = groupSizeInSample;
                     if (population != sample) {
-                        groupSizeInPopulation = population.size;
+                        groupSizeInPopulation =  Object.keys(population).length;
                     }
 
                     // Computing rA
@@ -440,14 +471,12 @@
 
         }
 
-        function getMarketerRisk(sample , population  , offset) {
+        function getMarketerRisk(sample , population  , offset , threshold) {
             var progress =0;
             var rC =0 ;
             var numRecordsInSample = 0;
             var maxindex = Object.keys(sample).length;
             var index = 0;
-
-            var threshold = 0.2;
 
              {#console.log(sample);#}
 
@@ -468,7 +497,7 @@
                     var groupSizeInSample = elementSize;
                     var groupSizeInPopulation = groupSizeInSample;
                     if (population != sample) {
-                        groupSizeInPopulation = population.size;
+                        groupSizeInPopulation = Object.keys(population).length;
                     }
 
                     // Computing rC
@@ -493,5 +522,7 @@
             g3.refresh(g3Marketer| 0);
 
         }
+
+
 </script>
 {% endblock %}

@@ -203,7 +203,7 @@
 
         function riskEvaluation(olddata , threshold , samplePercent) {
 
-            var data = olddata;
+            var data = olddata.slice();
             var identifiers = Object.keys(data[0]) ;
             console.log(identifiers);
             console.log("heyyy");
@@ -240,14 +240,25 @@
             var population;
 
 
-            sample = getGroups(data, identifiers, sampleOnlyOffset, sampleOnlyFactor, 0, sampleOnlyIgnoreOutliers);
+            if(samplePercent == 0){
+                sample = getGroups(data, identifiers, sampleOnlyOffset, sampleOnlyFactor, 0, sampleOnlyIgnoreOutliers);
+                population = sample;
+            }else{
+                var tempSampleSize = data.length * samplePercent /100;
+                console.log(tempSampleSize);
+                console.log(data);
+                data.splice(0,tempSampleSize);
+                console.log("aloha");
+                console.log(data);
+
+                sample = getGroups(data, identifiers, sampleOffset, sampleFactor, 0, sampleIgnoreOutliers);
+                population = getGroups(data, identifiers, popOffset, popFactor, 0, popIgnoreOutliers);
+            }
             {#sample = getGroups(data, identifiers, sampleOffset, sampleFactor, 0, sampleIgnoreOutliers);#}
 
-            var sampleSize = data.length * samplePercent /100;
-           data.splice(0,sampleSize);
-           console.log("aloha");
-            console.log(data);
-            population = sample;
+
+
+
             {#population = getGroups(data, identifiers, popOffset, popFactor, 0, popIgnoreOutliers);#}
 
             {#console.log("Ninja");#}

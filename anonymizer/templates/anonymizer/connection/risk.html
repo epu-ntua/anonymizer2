@@ -22,59 +22,60 @@
             </li>
         </ul>
 
-        <div class="tab-content tab-space"> </div>
-        <div class="tab-pane active" id="risk-tab">
-            <select id="attackermodel" style="margin-bottom:40px;margin-top:20px;">
-                <option value="prosecutor">Prosecutor Attacker Model</option>
-                <option value="journalist">Journalist Attacker Model</option>
-                <option value="marketer">Marketer Attacker Model</option>
-            </select>
-            <div class="row">
-                <div class="col-md-2">
-                    <div id="g1"></div>
-                </div>
-                <div class="col-md-2">
-                    <div id="g2"></div>
-                </div>
-                <div class="col-md-2">
-                    <div id="g3"></div>
+        <div class="tab-content tab-space">
+            <div class="tab-pane active" id="risk-tab">
+                <select id="attackermodel" style="margin-bottom:40px;margin-top:20px;">
+                    <option value="prosecutor">Prosecutor Attacker Model</option>
+                    <option value="journalist">Journalist Attacker Model</option>
+                    <option value="marketer">Marketer Attacker Model</option>
+                </select>
+                <div class="row">
+                    <div class="col-md-2">
+                        <div id="g1"></div>
+                    </div>
+                    <div class="col-md-2">
+                        <div id="g2"></div>
+                    </div>
+                    <div class="col-md-2">
+                        <div id="g3"></div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="tab-pane" id="privacy-tab">
-            <h3>Select Privacy Model to apply</h3>
-            <div style="margin-top:10px;">
-                <b>Privacy Model</b>
-            </div>
-            <select style="margin-bottom:40px;" >
-                <option value="prosecutor" selected="selected">k-Anonymity</option>
-                <option value="journalist">k-Map</option>
-                <option value="marketer">Differential privacy</option>
-                <option value="marketer">δ-Precense</option>
-            </select>
-            <div>
-                <b>Privacy Model Parameters</b>
-            </div>
-            <div style="margin-bottom:30px">
-                k-Parameter <input type="text" name="kparameter">
-            </div>
-            <div>
-                <b>Threshold Selection</b>
-                 Acceptable highest probability of re-identification for a single record
-            </div>
-            <div>
-                Select a percent <input type="number" id="thresholdSelector" min="0" max="100" step="1" name="Threshold" value=20>
-            </div>
-            <div>
-                <b>Sample Extraction</b>
+            <div class="tab-pane" id="privacy-tab">
+                <h3>Select Privacy Model to apply</h3>
+                <div style="margin-top:10px;">
+                    <b>Privacy Model</b>
+                </div>
+                <select style="margin-bottom:40px;" >
+                    <option value="prosecutor" selected="selected">k-Anonymity</option>
+                    <option value="journalist">k-Map</option>
+                    <option value="marketer">Differential privacy</option>
+                    <option value="marketer">δ-Precense</option>
+                </select>
+                <div>
+                    <b>Privacy Model Parameters</b>
+                </div>
+                <div style="margin-bottom:30px">
+                    k-Parameter <input type="text" name="kparameter">
+                </div>
+                <div>
+                    <b>Threshold Selection</b>
+                     Acceptable highest probability of re-identification for a single record
+                </div>
+                <div>
+                    Select a percent <input type="number" id="thresholdSelector" min="0" max="100" step="1" name="Threshold" value=20>
+                </div>
+                <div>
+                    <b>Sample Extraction</b>
 
+                </div>
+                <div style="margin-bottom:30px">
+                    Select a percent <input type="number" id="sampleSelector" min="0" max="100" step="1" name="Threshold" value=0>
+                </div>
+                <a class="btn btn-warning" style="margin-bottom:20px" href="#"><i
+                        class="fas fa-user-secret"></i> Apply Privacy Model</a>
             </div>
-            <div style="margin-bottom:30px">
-                Select a percent <input type="number" id="sampleSelector" min="0" max="100" step="1" name="Threshold" value=0>
-            </div>
-            <a class="btn btn-warning" style="margin-bottom:20px" href="#"><i
-                    class="fas fa-user-secret"></i> Apply Privacy Model</a>
         </div>
     </div>
     <hr/>
@@ -99,8 +100,11 @@
 <script src="{% static 'vendor/justgage/justgage.js' %}"></script>
 <script src="{% static 'vendor/justgage/raphael-2.1.4.min.js' %}"></script>
 <script>
+     //Placeolder variables for count meters
     var g1, g2, g3;
+     //Varaibles where risk analysis results is stored
     var g1Prosecutor =0 ,g1Journalist=0, g2Prosecutor =0, g2Journalist=0, g3Prosecutor=0, g3Journalist=0, g3Marketer=0;
+     //Default values for threshold and starting samplePercent used
     var threshold = 0.2;
     var samplePercent =0;
     var dataStatic;
@@ -201,12 +205,18 @@
         }
     });
 
+        /*
+        * This function accepts the data
+        * and copies them to avoid errors when re-calculating
+        * when users change the risk threshold or
+        * the percent of sample extracted.
+        * */
         function riskEvaluation(olddata , threshold , samplePercent) {
-
             var data = olddata.slice();
             var identifiers = Object.keys(data[0]) ;
-            console.log(identifiers);
-            console.log("heyyy");
+            console.log(olddata);
+console.log(identifiers);
+
              for ( var tempCounter = 0 ; tempCounter < data.length; tempCounter++){
                  var result = Object.keys(data[tempCounter]).map(function(key) {
                      return data[tempCounter][key];
@@ -215,10 +225,37 @@
                 data[tempCounter] = result;
              }
 
-            identifiers = identifiers.splice(3,1);
-             for ( var tempCounter = 0 ; tempCounter < data.length; tempCounter++){
-                 data[tempCounter].splice(3,1);
+             console.log(data);
+
+             var arrayOfNames = ["name" , "surname" , "alias", "nickname" ,"family name"];
+             var arrayOfAdresses =["address" ,"addresses" ,"home" , "street" , "zip code" ,"city" ,"county" ,"state" ,"country"];
+             var arrayOfDates =["date" , "birth date" , "death date" , "discharge date", "admission date" ,"age"];
+             var arrayOfPhones =["phone" , "cellphone"];
+             var arrayOfFax =["fax" , "fax number"];
+             var arrayOfEmail =["email" , "e-mail", "electronic mail"];
+             {#var arrayOfSocialSecurity =[];#}
+             {#var arrayOfMedicalRecord =[];#}
+             {#var arrayOfHealthPlanBeneficiary =[];#}
+             {#var arrayOfAccountNumber =[];#}
+             {#var arrayOfCertificateNUmber =[];#}
+             {#var arrayOfVehicleIdentifier =[];#}
+             {#var arrayOfDeviceIdentifier =[];#}
+             {#var arrayOfUrl =[];#}
+             {#var arrayOfIp =[];#}
+             var arrayOfBioIdentifiers =["sex" , "gender" , "race" , "marital"];
+
+             for( var tempCounter =0 ; tempCounter < identifiers.length ; tempCounter++){
+                 if( ( IdentifierCheck(identifiers[tempCounter] , arrayOfNames) == 0 ) && ( IdentifierCheck(identifiers[tempCounter] , arrayOfAdresses) == 0 ) && ( IdentifierCheck(identifiers[tempCounter] , arrayOfDates) == 0 ) && ( IdentifierCheck(identifiers[tempCounter] , arrayOfPhones) == 0 ) && ( IdentifierCheck(identifiers[tempCounter] , arrayOfFax) == 0 ) && ( IdentifierCheck(identifiers[tempCounter] , arrayOfEmail) == 0 ) && ( IdentifierCheck(identifiers[tempCounter] , arrayOfBioIdentifiers) == 0 ))
+                 {
+                     identifiers = identifiers.splice(tempCounter,1);
+                     for ( var tempCounter1 = 0 ; tempCounter1 < data.length; tempCounter1++){
+                         data[tempCounter1].splice(tempCounter,1);
+                     }
+                 }
+
              }
+
+             console.log("hellof");
              console.log(data);
             var sampleOffset = 0;
             var sampleFactor = 0.45;
@@ -245,25 +282,14 @@
                 population = sample;
             }else{
                 var tempSampleSize = data.length * samplePercent /100;
-                console.log(tempSampleSize);
-                console.log(data);
+
                 data.splice(0,tempSampleSize);
-                console.log("aloha");
-                console.log(data);
+
 
                 sample = getGroups(data, identifiers, sampleOffset, sampleFactor, 0, sampleIgnoreOutliers);
                 population = getGroups(data, identifiers, popOffset, popFactor, 0, popIgnoreOutliers);
             }
-            {#sample = getGroups(data, identifiers, sampleOffset, sampleFactor, 0, sampleIgnoreOutliers);#}
 
-
-
-
-            {#population = getGroups(data, identifiers, popOffset, popFactor, 0, popIgnoreOutliers);#}
-
-            {#console.log("Ninja");#}
-            console.log(Object.keys(sample).length);
-            console.log(Object.keys(population).length);
             {#var tempc = 0#}
             {#for (var key in sample) {#}
             {#    delete sample[key];#}
@@ -281,7 +307,6 @@
         function getGroups(data , quasi ,offset , factor , progress , ignoreoutliers) {
         // Getting data from database and number of quasi identifiers
             var map = {};
-             // console.log(hello);
             var indices=[];
             for ( var tempCounter =0; tempCounter < quasi.length ;tempCounter++){
 
@@ -318,6 +343,11 @@
             return map
         }
 
+        /*
+        * This function produces a has from the row provided to it.
+        * This moment the hashing is simply concating all the row parts
+        * and using it as a key
+        * */
         function hashEntry(row) {
             var temp = "";
             for (var it =0 ; it < row.length; it ++){
@@ -328,6 +358,9 @@
 
         }
 
+        /*
+        * This function computes the Risk of a prosecutor type of attack
+        * */
         function getProsecutorRisk(sample , population  , offset , threshold) {
             var progress =0;
             var rA =0;
@@ -341,17 +374,14 @@
 
 
             for( var prop in sample ) {
-                  {#console.log(prop);#}
                 var elementSize = sample[prop];
-                 {#console.log(elementSize);#}
-                 {#console.log(Object.keys(sample).length);#}
                 var prog = Math.round(offset + index / maxindex * 3.3);
                 if (prog != progress) {
                     progress = prog
                 }
                 index = index + 1;
 
-                // if element isnt supressed
+                // if element isn't supressed
                  if (1) {
                     var groupSize = elementSize;
 
@@ -370,9 +400,6 @@
                     numRecords += groupSize;
 
                  }
-
-                 {#element = element.next;#}
-
 
                  if(stop)
                  {
@@ -396,6 +423,9 @@
             g3.refresh(g3Prosecutor| 0);
         }
 
+        /*
+        * This function computes the Risk of a journalist type of attack
+        * */
         function getJournalistRisk(sample , population  , offset , threshold) {
             var progress =0;
             var rA =0;
@@ -410,13 +440,10 @@
             var index = 0;
 
 
-             {#console.log(sample);#}
+
 
             for( var prop in sample ) {
-                  {#console.log(prop);#}
                 var elementSize = sample[prop];
-                 {#console.log(elementSize);#}
-                 {#console.log(Object.keys(sample).length);#}
                 var prog = Math.round(offset + index / maxindex * 3.3);
                 if (prog != progress) {
                     progress = prog
@@ -448,9 +475,6 @@
                     rC2 += groupSizeInSample / groupSizeInPopulation;
                  }
 
-                 {#element = element.next;#}
-
-
                  if(stop)
                  {
 
@@ -465,11 +489,6 @@
                 rC2 = rC2 / numRecordsInSample;
                 rC = Math.max(rC1, rC2);
 
-                {# console.log("risks are");#}
-                {#console.log(rA);#}
-                {#console.log(rB);#}
-                {#console.log(rC);#}
-
                 g1Journalist = rA*100;
                 g2Journalist = rB*100;
                 g3Journalist = rC*100;
@@ -477,11 +496,12 @@
                 g1.refresh(g1Journalist| 0);
                 g2.refresh(g2Journalist| 0);
                 g3.refresh(g3Journalist| 0);
-                {#return [threshold , rA , rB , rC];#}
-
 
         }
 
+        /*
+        * This function computes the Risk of a marketer type of attack
+        * */
         function getMarketerRisk(sample , population  , offset , threshold) {
             var progress =0;
             var rC =0 ;
@@ -489,14 +509,8 @@
             var maxindex = Object.keys(sample).length;
             var index = 0;
 
-             {#console.log(sample);#}
-
             for( var prop in sample ) {
-                  {#console.log(prop);#}
                 var elementSize = sample[prop];
-
-                 {#console.log(elementSize);#}
-                 {#console.log(Object.keys(sample).length);#}
                 var prog = Math.round(offset + index / maxindex * 3.3);
                 if (prog != progress) {
                     progress = prog
@@ -516,9 +530,6 @@
                     rC += groupSizeInSample / groupSizeInPopulation;
                  }
 
-                 {#element = element.next;#}
-
-
                  if(stop)
                  {
 
@@ -534,6 +545,19 @@
 
         }
 
-
+        /*
+        * This helper function is used to check if a identifier
+        * actually belongs in an prefilled array of
+        * common namings of quasi identifiers
+        * Returns 1 if the identifiers belongs in this group 0 if not
+        * */
+        function IdentifierCheck(currentId, idList){
+            for( var tempCounter = 0; tempCounter < idList.length;tempCounter ++){
+                if( currentId.toUpperCase() == idList[tempCounter].toUpperCase()){
+                    return 1;
+                }
+            }
+            return 0;
+        }
 </script>
 {% endblock %}

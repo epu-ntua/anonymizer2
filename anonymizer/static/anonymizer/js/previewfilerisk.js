@@ -20,6 +20,21 @@ function initTable(pk) {
                 filters: true,
                 dropdownMenu: true
             });
+
+            // var tempdata = data;
+
+            identifiersStatic = Object.keys(data[0]);
+            /* The data is being provided in an array of objects here we convert those objects to arrays*/
+            var dataLength = data.length;
+            for (var tempCounter = 0; tempCounter < dataLength; tempCounter++) {
+                var result = Object.keys(data[tempCounter]).map(function (key) {
+                    return data[tempCounter][key];
+
+                })
+                dataStatic[tempCounter] = result;
+            }
+
+            riskEvaluation(dataStatic, identifiersStatic,threshold, samplePercent);
         },
         error: function (xhr, status, error) {
             console.log(error)

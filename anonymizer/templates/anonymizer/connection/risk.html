@@ -4,6 +4,41 @@
 {% block css %}
     <link rel="stylesheet" media="screen"
           href="https://cdnjs.cloudflare.com/ajax/libs/handsontable/4.0.0/handsontable.min.css">
+
+    <style>
+    .identifier-area{
+        outline: 1px solid lightgrey;
+        height: 100px;
+        width: 100%;
+        padding: 5px;
+
+    }
+
+    .identifier-area:hover{
+        {#background-color: #f2f2f2;#}
+    }
+
+    .identifier-selector{
+        padding-right: 5px;
+        padding-left: 5px;
+        display: inline-block;
+        color: black;
+        border-radius: 20px;
+        border: 2px solid #737373;
+        margin-bottom: 3px;
+        margin-left: 2px;
+        {#outline : 1px solid black;#}
+    }
+
+    .identifier-selector:hover{
+        cursor: grab;
+        border: 2px solid lightseagreen;
+        background-color: #f2f2f2;
+    }
+    </style>
+
+
+
 {% endblock %}
 
 {% block content %}
@@ -11,8 +46,6 @@
     <div class="row">
         <div class="col-sm-12" style="margin-bottom:40px">
             <h1 style="margin-bottom: 40px;"><i class="fas fa-shield-alt"></i> Preview and Risk Analysis</h1>
-
-
             <ul class="nav nav-pills">
                 <li class="nav-item">
                     <a class="nav-link active" data-toggle="pill" href="#risk-tab">Risk Analysis</a>
@@ -31,15 +64,30 @@
                     </select>
                     <div class="row">
                         <div class="col-md-2">
+                            <div id="g3"></div>
+                        </div>
+                        <div class="col-md-2">
                             <div id="g1"></div>
                         </div>
                         <div class="col-md-2">
                             <div id="g2"></div>
                         </div>
-                        <div class="col-md-2">
-                            <div id="g3"></div>
-                        </div>
                     </div>
+                    <b>Identifiers</b>
+                    <div id="identifier-area-id"class="identifier-area" ondrop="drop(event)" ondragover="allowDrop(event)">
+{#                        <div id="tomove" class="identifier-selector" draggable="true" ondragstart="drag(event)"> Name</div>#}
+                    </div>
+                    <b>Quasi Identifiers </b>
+                    <div id="quasi-area-id" class="identifier-area" ondrop="drop(event)" ondragover="allowDrop(event)">
+
+                    </div>
+                    <b>Insensitive Data</b>
+                    <div id="insensitive-area-id" class="identifier-area"ondrop="drop(event)" ondragover="allowDrop(event)">
+
+                    </div>
+{#                    <b>Sensitive Data</b>#}
+{#                    <div>#}
+{#                    </div>#}
                 </div>
 
                 <div class="tab-pane" id="privacy-tab">
@@ -67,15 +115,15 @@
                         Select a percent <input type="number" id="thresholdSelector" min="0" max="100" step="1"
                                                 name="Threshold" value=20>
                     </div>
-                    <div>
-                        <b>Sample Extraction</b>
-                        Percent of data to be considered research sample.
-                        To consider the whole dataset as a research sample simply put percent as 100
-                    </div>
-                    <div style="margin-bottom:30px">
-                        Select a percent <input type="number" id="sampleSelector" min="1" max="100" step="1"
-                                                name="Threshold" value=50>
-                    </div>
+{#                    <div>#}
+{#                        <b>Sample Extraction</b>#}
+{#                        Percent of data to be considered research sample.#}
+{#                        To consider the whole dataset as a research sample simply put percent as 100#}
+{#                    </div>#}
+{#                    <div style="margin-bottom:30px">#}
+{#                        Select a percent <input type="number" id="sampleSelector" min="1" max="100" step="1"#}
+{#                                                name="Threshold" value=100>#}
+{#                    </div>#}
                     <a class="btn btn-warning" style="margin-bottom:20px" href="#"><i
                             class="fas fa-user-secret"></i> Apply Privacy Model</a>
                 </div>
@@ -89,8 +137,8 @@
         </div>
         <div class="row">
             <div class="col-sm-12">
-                <a class="btn btn-success" style="margin-bottom:20px" href="#"><i
-                        class="fas fa-table"></i> Export to CSV</a>
+                <div onclick="downloadCSV()" class="btn btn-success" style="margin-bottom:20px"><i
+                        class="fas fa-table"></i> Export to CSV</div>
                 <div id="preview_table"></div>
             </div>
         </div>
@@ -110,8 +158,13 @@
             g3Marketer = 0;
         //Default values for threshold and starting samplePercent used
         var threshold = 0.2;
-        var samplePercent = 50;
-        var dataStatic;
+        var samplePercent = 100;
+        var dataStatic =[];
+        var identifiersStatic;
+
+        var activeIdentifiersArray =[];
+        var activeQuasiIdentifiersArray =[];
+        var activeInsensitiveIdentifiersArray =[];
 
         window.onload = function () {
             g1 = new JustGage({
@@ -163,12 +216,12 @@
 
             document.getElementById('thresholdSelector').addEventListener('change', function () {
                 threshold = document.getElementById('thresholdSelector').value * 0.01;
-                riskEvaluation(dataStatic, threshold, samplePercent);
+                riskEvaluationRepeat(dataStatic, identifiersStatic,threshold, samplePercent);
             });
 
             document.getElementById('sampleSelector').addEventListener('change', function () {
                 samplePercent = document.getElementById('sampleSelector').value;
-                riskEvaluation(dataStatic, threshold, samplePercent);
+                riskEvaluationRepeat(dataStatic, identifiersStatic,threshold, samplePercent);
             });
             // document.getElementById('attackermodel').addEventListener('change', function () {
             //     g1.refresh(getRandomInt(50, 100));
@@ -181,7 +234,7 @@
     <script src="{% static  'anonymizer/js/previewfilerisk.js' %}"></script>
     <script>
         $(function () {
-            data = initTable({{ pk }});
+            initTable({{ pk }});
             {#console.log(data);#}
         });
 
@@ -195,19 +248,19 @@
         {#var data = {{ data|safe}};#}
         // var identifiers = data.shift();
 
-        $.ajax({
-            type: "get",
-            url: "/anonymizer/connection/" + {{ pk }} +"/query/?q=all()",
-            data: {},
-            dataType: "json",
-            success: function (data) {
-                dataStatic = data;
-                riskEvaluation(data, threshold, samplePercent);
-            },
-            error: function (xhr, status, error) {
-                console.log(error)
-            }
-        });
+        {#$.ajax({#}
+        {#    type: "get",#}
+        {#    url: "/anonymizer/connection/" + {{ pk }} +"/query/?q=all()",#}
+        {#    data: {},#}
+        {#    dataType: "json",#}
+        {#    success: function (data) {#}
+        {#        dataStatic = data;#}
+        {#        riskEvaluation(data, threshold, samplePercent);#}
+        {#    },#}
+        {#    error: function (xhr, status, error) {#}
+        {#        console.log(error)#}
+        {#    }#}
+        {# });#}
 
         /*
         * This function accepts the data
@@ -215,22 +268,15 @@
         * when users change the risk threshold or
         * the percent of sample extracted.
         * */
-        function riskEvaluation(olddata, threshold, samplePercent) {
-            var data = olddata.slice();
+        function riskEvaluation(olddata, oldidentifiers, threshold, samplePercent) {
             /* Copy the data because the original is still needed for later calls of the function*/
-
-            /* The data is being provided in an array of objects here we convert the data from array->object
-            to array keys of the object and another array with every line representing a  iteration of the object*/
-            var identifiers = Object.keys(data[0]);
-            /* The data is being provided in an array of objects here we convert those objects to arrays*/
-            var dataLength = data.length;
-            for (var tempCounter = 0; tempCounter < dataLength; tempCounter++) {
-                var result = Object.keys(data[tempCounter]).map(function (key) {
-                    return data[tempCounter][key];
-
-                })
-                data[tempCounter] = result;
+            var data = [];
+            var olddataLength = olddata.length;
+            for (var tempCounter = 0; tempCounter < olddataLength; tempCounter++) {
+                data[tempCounter] = olddata[tempCounter].slice();
             }
+            var identifiers= oldidentifiers.slice();
+
 
             /*
             * HIPAA based quasi identifiers and common namings of them
@@ -244,29 +290,53 @@
             var arrayOfPhones = ["phone", "cellphone"];
             var arrayOfFax = ["fax", "fax number"];
             var arrayOfEmail = ["email", "e-mail", "electronic mail"];
-            {#var arrayOfSocialSecurity =[];#}
-            {#var arrayOfMedicalRecord =[];#}
-            {#var arrayOfHealthPlanBeneficiary =[];#}
-            {#var arrayOfAccountNumber =[];#}
-            {#var arrayOfCertificateNUmber =[];#}
-            {#var arrayOfVehicleIdentifier =[];#}
-            {#var arrayOfDeviceIdentifier =[];#}
-            {#var arrayOfUrl =[];#}
-            {#var arrayOfIp =[];#}
             var arrayOfBioIdentifiers = ["sex", "gender", "race", "marital"];
+
+            var arrayOfQuasi =["longitudecustomer", "citypolizza" ,"latitudecustomer" , "provincepolizza" , "infortuniprecedenti" , "longitudepoliza" , "provincecustomer" , "sinistri" ,"descrizionerishio" , "blacklist" , "citycustomer" , "codicerischio" , "adresspolizza" ,"aia" , "gender" , "age" , "prodottto" , "ramo"];
+            var arrayOfIdentifiers =["polizzaid" , "firstname" , "email" ,"lastname" , "mobile" , "addresscustomer" ];
+
+            {#var generalArrayOfQuasi =["zip code", "city", "county", "state", "country", "sex", "gender", "race", "marital"];#}
+            {#var generalArrayOfIdentifiers =["name", "surname", "alias", "nickname", "family name" ,"address", "addresses", "home", "street", "phone", "cellphone" ,"fax", "fax number" ,"email", "e-mail", "electronic mail"];#}
+
+            var generalArrayOfQuasi =[];
+            var generalArrayOfIdentifiers =[];
 
             var identifiersLength = identifiers.length;
             for (var tempCounter = 0; tempCounter < identifiersLength; tempCounter++) {
-                if ((IdentifierCheck(identifiers[tempCounter], arrayOfNames) == 0) && (IdentifierCheck(identifiers[tempCounter], arrayOfAdresses) == 0) && (IdentifierCheck(identifiers[tempCounter], arrayOfDates) == 0) && (IdentifierCheck(identifiers[tempCounter], arrayOfPhones) == 0) && (IdentifierCheck(identifiers[tempCounter], arrayOfFax) == 0) && (IdentifierCheck(identifiers[tempCounter], arrayOfEmail) == 0) && (IdentifierCheck(identifiers[tempCounter], arrayOfBioIdentifiers) == 0)) {
+                {#if ((IdentifierCheck(identifiers[tempCounter], arrayOfNames) == 0) && (IdentifierCheck(identifiers[tempCounter], arrayOfAdresses) == 0) && (IdentifierCheck(identifiers[tempCounter], arrayOfDates) == 0) && (IdentifierCheck(identifiers[tempCounter], arrayOfPhones) == 0) && (IdentifierCheck(identifiers[tempCounter], arrayOfFax) == 0) && (IdentifierCheck(identifiers[tempCounter], arrayOfEmail) == 0) && (IdentifierCheck(identifiers[tempCounter], arrayOfBioIdentifiers) == 0)) {#}
+                {#    identifiers.splice(tempCounter, 1);#}
+                {#    for (var tempCounter1 = 0; tempCounter1 < data.length; tempCounter1++) {#}
+                {#        data[tempCounter1].splice(tempCounter, 1);#}
+                {#    }#}
+                {#    tempCounter--;#}
+                {#    identifiersLength = identifiers.length;#}
+                {# }#}
+
+                if ( (IdentifierCheck(identifiers[tempCounter] , arrayOfQuasi) == 0) && (IdentifierCheck(identifiers[tempCounter] , generalArrayOfQuasi) == 0) ) {
+                    if((IdentifierCheck(identifiers[tempCounter] , arrayOfIdentifiers) == 0) && (IdentifierCheck(identifiers[tempCounter] , generalArrayOfIdentifiers) == 0) ){
+                        //It means the column is insensitive data so we add it to the respective bucket
+                        addIdentifierTag(2, identifiers[tempCounter]);
+                        activeInsensitiveIdentifiersArray.push(identifiers[tempCounter]);
+                    }else{
+                        //It means the column is an identifier so we add it to the respective bucket
+                        addIdentifierTag(0, identifiers[tempCounter]);
+                        activeIdentifiersArray.push(identifiers[tempCounter]);
+                    }
+
                     identifiers.splice(tempCounter, 1);
                     for (var tempCounter1 = 0; tempCounter1 < data.length; tempCounter1++) {
                         data[tempCounter1].splice(tempCounter, 1);
                     }
                     tempCounter--;
                     identifiersLength = identifiers.length;
-                }
+                }else{
+                    //It means the column is an quasi identifier so we add it to the respective bucket
+                    activeQuasiIdentifiersArray.push(identifiers[tempCounter]);
+                    addIdentifierTag(1, identifiers[tempCounter]);
 
+                }
             }
+
 
 
             var sampleOffset = 0;
@@ -315,6 +385,93 @@
             getMarketerRisk(sample, population, marketerOffset, threshold);
             getProsecutorRisk(sample, population, prosecutorOffset, threshold);
         }
+
+        /*
+        * This function accepts the data
+        * and copies them to avoid errors when re-calculating
+        * when users change the risk threshold or
+        * the percent of sample extracted.
+        * */
+        function riskEvaluationRepeat(olddata, oldidentifiers, threshold, samplePercent) {
+            /* Copy the data because the original is still needed for later calls of the function*/
+            var data = [];
+            var olddataLength = olddata.length;
+            for (var tempCounter = 0; tempCounter < olddataLength; tempCounter++) {
+                data[tempCounter] = olddata[tempCounter].slice();
+            }
+            var identifiers= oldidentifiers.slice();
+
+
+            var identifiersLength = identifiers.length;
+            for (var tempCounter = 0; tempCounter < identifiersLength; tempCounter++) {
+                if ( IdentifierCheck(identifiers[tempCounter] , activeQuasiIdentifiersArray) == 0 ) {
+                    identifiers.splice(tempCounter, 1);
+                    for (var tempCounter1 = 0; tempCounter1 < data.length; tempCounter1++) {
+                        data[tempCounter1].splice(tempCounter, 1);
+                    }
+                    tempCounter--;
+                    identifiersLength = identifiers.length;
+                }
+            }
+
+
+
+            var sampleOffset = 0;
+            var sampleFactor = 0.45;
+            var sampleIgnoreOutliers = false;
+
+            var popOffset = 0.45;
+            var popFactor = 0.45;
+            var popIgnoreOutliers = true;
+
+            var sampleOnlyOffset = 0;
+            var sampleOnlyFactor = 0.9;
+            var sampleOnlyIgnoreOutliers = false;
+
+            var prosecutorOffset = 0.9;
+            var journalistOffset = 0.933;
+            var marketerOffset = 0.966;
+
+            var sample;
+            var population;
+
+
+            if (samplePercent == 100) {
+                sample = getGroups(data, identifiers, sampleOnlyOffset, sampleOnlyFactor, 0, sampleOnlyIgnoreOutliers);
+                population = sample;
+            } else {
+                var tempSampleSize = data.length * samplePercent / 100;
+
+                data.splice(0, tempSampleSize);
+
+
+                sample = getGroups(data, identifiers, sampleOffset, sampleFactor, 0, sampleIgnoreOutliers);
+                population = getGroups(data, identifiers, popOffset, popFactor, 0, popIgnoreOutliers);
+            }
+
+            {#var tempc = 0#}
+            {#for (var key in sample) {#}
+            {#    delete sample[key];#}
+            {#    if (tempc == 400) {#}
+            {#        break;#}
+            {#    }#}
+            {#    tempc++;#}
+            {# }#}
+
+            getJournalistRisk(sample, population, journalistOffset, threshold);
+            getMarketerRisk(sample, population, marketerOffset, threshold);
+            getProsecutorRisk(sample, population, prosecutorOffset, threshold);
+
+            var opts = document.getElementById("attackermodel").options;
+
+            for (var opt, j = 0; opt = opts[j]; j++) {
+                if (opt.value == "prosecutor") {
+                  document.getElementById("attackermodel").selectedIndex = j;
+                  break;
+                }
+            }
+        }
+
 
         // ignote outliers true if
         function getGroups(data, quasi, offset, factor, progress, ignoreoutliers) {
@@ -565,6 +722,156 @@
                 }
             }
             return 0;
+        }
+
+        /*
+        * "0" - Identifiers area
+        * "1" - Quasi Indentiiers area
+        * "2" - Insensitive area
+        * */
+        function addIdentifierTag(id , title ) {
+            var container = document.createElement("div");
+            container.id="custom-tag" + title;
+            container.classList.add("identifier-selector");
+            container.setAttribute("draggable" , "true");
+            container.setAttribute("ondragstart" , "drag(event)");
+            container.innerHTML = title;
+            if(id == 0){
+                document.getElementById("identifier-area-id").appendChild(container);
+                {#activeIdentifiersArray.push(title);#}
+                {#var tempIndex = activeQuasiIdentifiersArray.indexOf(title);#}
+                {#if(tempIndex > -1){#}
+                {#    activeQuasiIdentifiersArray.splice(tempIndex,1);#}
+                {# }#}
+                {#tempIndex = activeInsensitiveIdentifiersArray.indexOf(title);#}
+                {#if(tempIndex > -1){#}
+                {#    activeQuasiIdentifiersArray.splice(tempIndex,1);#}
+                {# }#}
+            }else if(id == 1 ){
+                document.getElementById("quasi-area-id").appendChild(container);
+                {#activeQuasiIdentifiersArray.push(title);#}
+                {#var tempIndex = activeIdentifiersArray.indexOf(title);#}
+                {#if(tempIndex > -1){#}
+                {#    activeIdentifiersArray.splice(tempIndex,1);#}
+                {# }#}
+                {#tempIndex = activeInsensitiveIdentifiersArray.indexOf(title);#}
+                {#if(tempIndex > -1){#}
+                {#    activeQuasiIdentifiersArray.splice(tempIndex,1);#}
+                {# }#}
+
+            }else if(id == 2){
+                document.getElementById("insensitive-area-id").appendChild(container);
+                {#activeInsensitiveIdentifiersArray.push(title);#}
+                {#var tempIndex = activeQuasiIdentifiersArray.indexOf(title);#}
+                {#if(tempIndex > -1){#}
+                {#    activeQuasiIdentifiersArray.splice(tempIndex,1);#}
+                {# }#}
+                {#tempIndex = activeIdentifiersArray.indexOf(title);#}
+                {#if(tempIndex > -1){#}
+                {#    activeIdentifiersArray.splice(tempIndex,1);#}
+                {# }#}
+            }
+        }
+{#  <div id="tomove" class="identifier-selector" draggable="true" ondragstart="drag(event)"> Name</div>#}
+
+        function arrayToCSV(response){
+            var result, ctr, columnDelimiter, lineDelimiter;
+
+            columnDelimiter = ",";
+            lineDelimiter="\n";
+            result ='';
+
+            var tempDataLength = dataStatic.length;
+            var tempIdLength = identifiersStatic.length;
+
+            for (var tempIdCounter =0 ; tempIdCounter < tempIdLength;tempIdCounter++){
+                result += identifiersStatic[tempIdCounter];
+                if(tempIdCounter == (tempIdLength-1)) {
+                    break;
+                }
+                result += columnDelimiter;
+            }
+            result += lineDelimiter;
+
+            for(var tempDataCounter = 0 ; tempDataCounter < tempDataLength ;tempDataCounter++){
+                ctr =0;
+                for (var tempIdCounter =0 ; tempIdCounter < tempIdLength;tempIdCounter++){
+                    if(ctr > 0){
+                        result += columnDelimiter;
+                    }
+                    result += dataStatic[tempDataCounter][tempIdCounter];
+                    ctr++;
+                }
+                result += lineDelimiter;
+            }
+            return result;
+        }
+        
+        function downloadCSV() {
+            var tempdata, filename, link;
+            var stringCSV = arrayToCSV();
+            if(stringCSV == null){
+                return;
+            }
+
+            filename =  'anonnymisedDataset.csv';
+
+
+            stringCSV = 'data:text/csv;charset=utf-8,' + stringCSV;
+            tempdata = encodeURI(stringCSV);
+            link = document.createElement('a');
+            link.setAttribute('href',tempdata);
+            link.setAttribute('download',filename);
+
+            document.body.appendChild(link);
+            link.click();
+
+            return;
+            {#alert("Data hasn't finished loading please wait and try again");#}
+        }
+
+        function allowDrop(ev) {
+            ev.preventDefault();
+        }
+
+        function drag(ev) {
+            ev.dataTransfer.setData("text", ev.target.id);
+        }
+
+        function drop(ev) {
+            ev.preventDefault();
+            var tomove = ev.dataTransfer.getData("text");
+            ev.target.appendChild(document.getElementById(tomove));
+
+            var targetArray;
+            var otherArray1;
+            var otherArray2;
+            if(ev.currentTarget.id == "identifier-area-id"){
+                targetArray = activeIdentifiersArray;
+                otherArray1 = activeQuasiIdentifiersArray;
+                otherArray2 = activeInsensitiveIdentifiersArray;
+            }else if(ev.currentTarget.id == "quasi-area-id"){
+                targetArray = activeQuasiIdentifiersArray;
+                otherArray1 = activeIdentifiersArray;
+                otherArray2 = activeInsensitiveIdentifiersArray;
+            } else if(ev.currentTarget.id == "insensitive-area-id"){
+                targetArray = activeInsensitiveIdentifiersArray;
+                otherArray1 = activeQuasiIdentifiersArray;
+                otherArray2 = activeIdentifiersArray;
+            }
+
+            var tempTitle = tomove.slice(10);
+            targetArray.push(tempTitle);
+            var tempIndex = otherArray1.indexOf(tempTitle);
+            if(tempIndex > -1){
+                otherArray1.splice(tempIndex,1);
+            }
+            tempIndex = otherArray2.indexOf(tempTitle);
+            if(tempIndex > -1){
+                otherArray2.splice(tempIndex,1);
+            }
+
+            riskEvaluationRepeat(dataStatic, identifiersStatic,threshold, samplePercent);
         }
     </script>
 {% endblock %}

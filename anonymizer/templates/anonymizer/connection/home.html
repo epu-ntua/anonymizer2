@@ -1,16 +1,21 @@
 {% extends "base.html" %}
 
 {% block title %}Home{% endblock %}
-
+{% load static %}
 {% block content %}
-    <h1>NTUA Anonymizer</h1>
-    <p><em>Exposing your data only the way you want</em></p>
+    <div class="row header-row">
+      <div class="col-m-12 header-logo">
+        <img src="{% static 'aegis_logo_white.png' %}" height ="60px">
+      </div>
 
-    <p>The NTUA Anonymizer makes it easier than ever to defined how other users can access your data. <br/>
+    </div>
+    <p><em><b>AEGIS - Anonymiser - Exposing your data only the way you want</b></em></p>
+
+    <p>The  Anonymiser makes it easier than ever to defined how other users can access your data. <br/>
         It allows you to defined what data should be exposed to third parties and how they should be transformed
         to ensure the anonymity of the exposed dataset -
         basically allowing you to expose part of your data in a meaningful way, while ensuring details of your dataset can easily be hidden. <br>
-        If you have any questions about the NTUA Anonymizer, please <a href="mailto:dpap@epu.ntua.gr">contact us</a>.
+        If you have any questions about the  Anonymiser, please <a href="mailto:smouzakitis@epu.ntua.gr">contact us</a>.
     </p>
 
     <div class="row">

@@ -28,7 +28,7 @@ body {
     height: 100%;
     margin-left: -250px;
     overflow-y: auto;
-    background: #000;
+    background: #216178;
     -webkit-transition: all 0.5s ease;
     -moz-transition: all 0.5s ease;
     -o-transition: all 0.5s ease;
@@ -57,7 +57,7 @@ body {
     position: absolute;
     top: 0;
     width: 250px;
-    margin: 0;
+    margin-top: 80px;
     padding: 0;
     list-style: none;
 }
@@ -65,12 +65,14 @@ body {
 .sidebar-nav li {
     text-indent: 20px;
     line-height: 40px;
+
 }
 
 .sidebar-nav li a {
     display: block;
     text-decoration: none;
-    color: #999999;
+    color: white;
+    font-family:Roboto
 }
 
 .sidebar-nav li a:hover {

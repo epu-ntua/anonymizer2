@@ -34,6 +34,12 @@
 
         <!-- Sidebar -->
         <div id="sidebar-wrapper">
+     <div class="row header-row">
+      <div class="col-m-12 header-logo" >
+        <a href="{% url 'index' %}"><img src="{% static 'aegis_logo.png' %}" height ="60px"></a>
+      </div>
+
+    </div>
             {% include 'util/menu.html' %}
         </div>
         <!-- /#sidebar-wrapper -->

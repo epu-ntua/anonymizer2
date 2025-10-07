@@ -1,5 +1,5 @@
 dump
-requests==2.7.0
+requests==2.32.4
 coverage
 simplejson
 python-dateutil

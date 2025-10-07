@@ -1,5 +1,5 @@
 dump
-django==2.2.24
+django==4.2.25
 requests==2.7.0
 coverage
 simplejson
